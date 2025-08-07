@@ -4,7 +4,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\SettingAppController;
-use App\Http\Controllers\ItemsController;
+use App\Http\Controllers\ItemController;
 use App\Http\Controllers\BookingsController;
 use App\Http\Controllers\BranchesController;
 use App\Http\Controllers\RegisterCustomUserController;
@@ -40,17 +40,16 @@ Route::get('/settingapp', [SettingAppController::class, 'show'])->name('settinga
 // Route to handle the form submission and update the settings.
 // The name 'settingapp.store' is used in your frontend form.
 Route::post('/settingapp', [SettingAppController::class, 'store'])->name('settingapp.store');
-   
-     Route::resource('items', App\Http\Controllers\ItemsController::class);
-     Route::resource('bookings', App\Http\Controllers\BookingsController::class);
-     Route::resource('branches', App\Http\Controllers\BranchesController::class);
-     Route::resource('users', App\Http\Controllers\UserController::class);
-     Route::get('user/create', [App\Http\Controllers\RegisterCustomUserController::class, 'create'])->name('user.create');   
-     Route::post('user/store', [App\Http\Controllers\RegisterCustomUserController::class, 'store'])->name('user.store');
-     Route::get('reports',[App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
-     Route::get('user/{user}/edit', [App\Http\Controllers\UserController::class, 'edit'])->name('users.edit');
-     Route::patch('/users/{user}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update');
-     Route::delete('/users/{user}', [App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy');
+   Route::resource('items', ItemController::class);
+     Route::resource('bookings', BookingsController::class);
+     Route::resource('branches', BranchesController::class);
+     Route::resource('users', UserController::class);
+     Route::get('user/create', [RegisterCustomUserController::class, 'create'])->name('user.create');
+     Route::post('user/store', [RegisterCustomUserController::class, 'store'])->name('user.store');
+     Route::get('reports',[ReportController::class, 'index'])->name('reports.index');
+     Route::get('user/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     // Resource routes for the RoleController
      Route::resource('roles', RoleController::class)->only(['index', 'store', 'update', 'destroy']);
     // Permissions management routes
