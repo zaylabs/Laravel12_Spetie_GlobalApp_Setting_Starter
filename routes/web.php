@@ -6,7 +6,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\SettingAppController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\BookingsController;
-use App\Http\Controllers\BranchesController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\RegisterCustomUserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
@@ -42,7 +42,7 @@ Route::get('/settingapp', [SettingAppController::class, 'show'])->name('settinga
 Route::post('/settingapp', [SettingAppController::class, 'store'])->name('settingapp.store');
    Route::resource('items', ItemController::class);
      Route::resource('bookings', BookingsController::class);
-     Route::resource('branches', BranchesController::class);
+     Route::resource('branches', BranchController::class);
      Route::resource('users', UserController::class);
      Route::get('user/create', [RegisterCustomUserController::class, 'create'])->name('user.create');
      Route::post('user/store', [RegisterCustomUserController::class, 'store'])->name('user.store');
