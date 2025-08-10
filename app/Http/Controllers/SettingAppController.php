@@ -14,31 +14,58 @@ class SettingAppController extends Controller
      */
     public function show()
     {
-        // Fetch the settings. If they don't exist, create them with defaults.
-        $setting = SettingApp::firstOrCreate([
-            // This is just a key for finding the setting. It's better to use 'id'
-            // or just find the first record and create if none exists.
-            // Using an empty array in `firstOrCreate` is a common pattern for singletons.
-        ], [
+        $setting = SettingApp::firstOrCreate([], [
             'app_name' => 'My App',
             'description' => '',
-            'color' => '#ffffff',
-            'logo' => null, // Add default values for logo and favicon
+            'color' => '#3b82f6',
+            'logo' => null,
             'favicon' => null,
         ]);
 
-        return Inertia::render('settingapp/Form', [
+        return Inertia::render('SettingApp/Index', [
             'setting' => $setting,
         ]);
     }
 
     /**
      * Store or update application settings.
+     * * Since the frontend uses method spoofing (POST with _method=PUT),
+     * this method can handle both creation and updates.
      */
-    public function store(Request $request)
+public function store(Request $request)
     {
-        // Find the first record or create it if none exists.
-        $setting = SettingApp::firstOrCreate([]);
+        $validated = $request->validate([
+            'app_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'color' => 'required|string|max:7',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'favicon' => 'nullable|image|mimes:ico,png|max:1024',
+        ]);
+        
+        // ... (Handle file uploads and save) ...
+
+        $setting = SettingApp::create($validated);
+        // Handle file uploads and save
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('images', 'public');
+            $setting->logo = $logoPath;
+        }
+
+        if ($request->hasFile('favicon')) {
+            $faviconPath = $request->file('favicon')->store('images', 'public');
+            $setting->favicon = $faviconPath;
+        }
+
+        $setting->save();
+        return redirect()->route('settingapp.show')->with('success', 'Application settings created successfully.');
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request)
+    {
+        $setting = SettingApp::firstOrFail(); // Use firstOrFail to ensure a setting exists
 
         $validated = $request->validate([
             'app_name' => 'required|string|max:255',
@@ -50,33 +77,24 @@ class SettingAppController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
-            // Delete old logo
             if ($setting->logo) {
                 Storage::disk('public')->delete($setting->logo);
             }
-            // Store new logo
             $logoPath = $request->file('logo')->store('images', 'public');
-            $setting->logo = $logoPath;
+            $validated['logo'] = $logoPath;
         }
 
         // Handle favicon upload
         if ($request->hasFile('favicon')) {
-            // Delete old favicon
             if ($setting->favicon) {
                 Storage::disk('public')->delete($setting->favicon);
             }
-            // Store new favicon
             $faviconPath = $request->file('favicon')->store('images', 'public');
-            $setting->favicon = $faviconPath;
+            $validated['favicon'] = $faviconPath;
         }
 
-        // Update other fields
-        $setting->app_name = $validated['app_name'];
-        $setting->description = $validated['description'];
-        $setting->color = $validated['color'];
+        $setting->update($validated);
         
-        $setting->save();
-
         return redirect()->route('settingapp.show')->with('success', 'Application settings updated successfully.');
     }
 }
