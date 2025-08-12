@@ -51,7 +51,11 @@ interface Props {
     configurations: Configuration;
     isSameDayUrgentEnabled: boolean;
     bookingDate: string;
-    deliveryDate: string;
+    deliveryDates: {
+        normal: string | null;
+        urgent: string | null;
+        same_day_urgent: string | null;
+    };
     problems: Problem[];
 }
 
@@ -72,8 +76,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 // Main Pos component
-export default function Pos({ items, configurations, isSameDayUrgentEnabled, bookingDate, deliveryDate, problems }: Props) {
+export default function Pos({ items, configurations, isSameDayUrgentEnabled, bookingDate, deliveryDates, problems }: Props) {
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Set the initial delivery date to the normal one.
+    const [currentDeliveryDate, setCurrentDeliveryDate] = useState(deliveryDates.normal);
 
     // Use Inertia's `useForm` hook to manage form state
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -89,8 +96,15 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
         hanger_amount: 0,
         total_amount: 0,
         booking_date: bookingDate,
-        delivery_date: deliveryDate,
+        delivery_date: deliveryDates.normal, // Initial value
     });
+
+    // Update the delivery date displayed and in form state when the delivery type changes
+    useEffect(() => {
+        const selectedDate = deliveryDates[data.delivery_type as keyof typeof deliveryDates];
+        setCurrentDeliveryDate(selectedDate);
+        setData('delivery_date', selectedDate);
+    }, [data.delivery_type, deliveryDates]);
 
     // Handle adding an item or incrementing its unit count
     const handleItemSelect = (item: Item) => {
@@ -332,7 +346,7 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                         </div>
                                         <div className="flex flex-col">
                                             <Label className="text-lg text-gray-700 dark:text-gray-300 font-semibold">Delivery Date</Label>
-                                            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{deliveryDate}</p>
+                                            <p className="text-xl font-bold text-gray-900 dark:text-gray-100">{currentDeliveryDate}</p>
                                         </div>
                                     </div>
 
@@ -414,11 +428,11 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                             </div>
                                             <div className="flex justify-between items-center text-lg">
                                                 <span>Subtotal:</span>
-                                                <span className="font-medium">${subTotal}</span>
+                                                <span className="font-medium">${subTotal.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-lg">
                                                 <span>Sales Tax ({configurations.SalesTax}%):</span>
-                                                <span className="font-medium">${salesTax}</span>
+                                                <span className="font-medium">${salesTax.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-lg">
                                                 <span>Hanger Charge (${configurations.Hangers}/unit):</span>
@@ -432,8 +446,7 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                             </div>
                                             <div className="flex justify-between items-center text-2xl font-bold text-gray-900 dark:text-gray-100 pt-4 border-t border-gray-200 dark:border-gray-700">
                                                 <span>Total:</span>
-                                                {/* The fix is applied here: check if 'total' is a valid number before formatting */}
-                                                <span>${typeof total === 'number' && !isNaN(total) ? total : '0'}</span>
+                                                <span>${typeof total === 'number' && !isNaN(total) ? total.toFixed(2) : '0.00'}</span>
                                             </div>
                                         </div>
                                     </div>

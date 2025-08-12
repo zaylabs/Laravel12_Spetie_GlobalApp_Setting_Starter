@@ -6,7 +6,7 @@ use App\Models\Booking;
 use App\Models\Item;
 use App\Models\Configuration;
 use App\Models\Customer;
-use App\Models\Problem; // Import the Problem model
+use App\Models\Problem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -35,19 +35,23 @@ class BookingController extends Controller
     {
         $items = Item::all();
         $configurations = Configuration::first();
-        $problems = Problem::all(); // Fetch all problems
+        $problems = Problem::all();
 
-        // Calculate and format dates to be displayed on the frontend
         $bookingDate = $this->calculateBookingDate();
-        $deliveryDate = $this->calculateDeliveryDate($bookingDate, 'normal', $configurations);
+        
+        $deliveryDates = [
+            'normal' => $this->calculateDeliveryDate($bookingDate, 'normal', $configurations)?->toFormattedDateString(),
+            'urgent' => $this->calculateDeliveryDate($bookingDate, 'urgent', $configurations)?->toFormattedDateString(),
+            'same_day_urgent' => $this->calculateDeliveryDate($bookingDate, 'same_day_urgent', $configurations)?->toFormattedDateString(),
+        ];
 
         return Inertia::render('Bookings/Pos', [
             'items' => $items,
             'configurations' => $configurations,
             'isSameDayUrgentEnabled' => $this->isSameDayUrgentEnabled(),
             'bookingDate' => $bookingDate->toFormattedDateString(),
-            'deliveryDate' => $deliveryDate ? $deliveryDate->toFormattedDateString() : null,
-            'problems' => $problems, // Pass problems to the view
+            'deliveryDates' => $deliveryDates,
+            'problems' => $problems,
         ]);
     }
 
@@ -68,14 +72,14 @@ class BookingController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validatedData = $request->validate([
-            'customer_id' => 'required|string|max:20', 
+            'customer_id' => 'required|string|max:20',
             'selectedItems' => 'required|array',
             'selectedItems.*.id' => 'required|exists:items,id',
             'selectedItems.*.units' => 'required|integer|min:1',
             'delivery_type' => 'required|in:normal,urgent,same_day_urgent',
             'hanger_units' => 'nullable|integer|min:0',
             'notes' => 'nullable|string',
-            'issues' => 'sometimes|array', // New validation rule for issues
+            'issues' => 'sometimes|array',
         ]);
         
         $customer = Customer::firstOrCreate(
@@ -119,7 +123,7 @@ class BookingController extends Controller
 
         DB::transaction(function () use ($validatedData, $receiptNumber, $bookingDate, $deliveryDate, $finalAmount, $salesTaxPercentage, $salesTaxAmount, $numberOfUnits, $hangerUnits, $hangerAmount, $totalAmount, $customer) {
             $booking = Booking::create([
-                'customer_phone' => $customer->phone, 
+                'customer_phone' => $customer->phone,
                 'receipt_number' => $receiptNumber,
                 'amount_total' => $finalAmount,
                 'sales_tax_percentage' => $salesTaxPercentage,
@@ -133,7 +137,7 @@ class BookingController extends Controller
                 'delivery_date' => $deliveryDate,
                 'status' => 'booked',
                 'notes' => $validatedData['notes'] ?? null,
-                'issues' => isset($validatedData['issues']) ? json_encode($validatedData['issues']) : null, // Store issues as a JSON string
+                'issues' => isset($validatedData['issues']) ? json_encode($validatedData['issues']) : null,
             ]);
             
             foreach ($validatedData['selectedItems'] as $item) {
@@ -172,9 +176,16 @@ class BookingController extends Controller
     private function calculateBookingDate(): Carbon
     {
         $now = Carbon::now();
-        if ($now->greaterThan(Carbon::today()->setTime(18, 30))) {
-            return $now->addDay()->setTime(9, 0);
+        $cutoffTime = Carbon::today()->setTime(18, 30);
+
+        if ($now->greaterThan($cutoffTime)) {
+            $nextDay = $now->copy()->addDay();
+            if ($nextDay->isFriday()) {
+                $nextDay->addDay();
+            }
+            return $nextDay->setTime(9, 0);
         }
+
         return $now;
     }
 
@@ -183,17 +194,35 @@ class BookingController extends Controller
      */
     private function calculateDeliveryDate(Carbon $bookingDate, string $deliveryType, Configuration $configurations): ?Carbon
     {
-        if ($deliveryType === 'same_day_urgent' && $this->isSameDayUrgentEnabled()) {
-            return $bookingDate;
-        }
-
+        $now = Carbon::now();
+        $cutoffTime = Carbon::today()->setTime(18, 30);
+        $sameDayCutoff = Carbon::today()->setTime(10, 30);
+        
         $daysToAdd = 0;
-        if ($deliveryType === 'normal') {
+
+        if ($deliveryType === 'same_day_urgent') {
+            // Same day if booked before 10:30 AM.
+            if ($now->lessThan($sameDayCutoff)) {
+                return $bookingDate->copy()->endOfDay();
+            } 
+            // If booked after 6:30 PM, delivery is next day.
+            elseif ($now->greaterThan($cutoffTime)) {
+                $daysToAdd = 1;
+            } else {
+                // Between 10:30 AM and 6:30 PM, same day urgent is not available.
+                return null;
+            }
+        } elseif ($deliveryType === 'normal') {
             $daysToAdd = $configurations->NumberOfDaysForNormal;
         } elseif ($deliveryType === 'urgent') {
             $daysToAdd = $configurations->NumberOfDaysForUrgent;
         }
 
+        // Add an extra day if the booking is made after 6:30 PM for Normal and Urgent deliveries
+        if ($now->greaterThan($cutoffTime) && ($deliveryType === 'normal' || $deliveryType === 'urgent')) {
+            $daysToAdd++;
+        }
+        
         $deliveryDate = $bookingDate->copy();
         
         for ($i = 0; $i < $daysToAdd; $i++) {
@@ -211,6 +240,11 @@ class BookingController extends Controller
      */
     private function isSameDayUrgentEnabled(): bool
     {
-        return Carbon::now()->lessThan(Carbon::today()->setTime(10, 30));
+        $now = Carbon::now();
+        $sameDayCutoff = Carbon::today()->setTime(10, 30);
+        $nextDayCutoff = Carbon::today()->setTime(18, 30);
+        
+        // Same Day Urgent is available before 10:30 AM and after 6:30 PM.
+        return $now->lessThan($sameDayCutoff) || $now->greaterThan($nextDayCutoff);
     }
 }
