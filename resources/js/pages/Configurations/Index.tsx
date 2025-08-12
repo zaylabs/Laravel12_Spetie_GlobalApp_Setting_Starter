@@ -21,6 +21,7 @@ interface ConfigurationItem {
     ChargesForNormalUrgent: number;
     ChargesForSameDayUrgent: number;
     NTNNumber: string;
+    Hangers: number;
 }
 
 // Define the props that this component expects from the Laravel controller
@@ -36,6 +37,7 @@ const DEFAULT_CONFIGURATION = {
     ChargesForNormalUrgent: 50,
     ChargesForSameDayUrgent: 100,
     NTNNumber: 'NTN-12345',
+    Hangers: 50,
 };
 
 // Define the breadcrumbs for this page
@@ -56,6 +58,7 @@ export default function ConfigurationsIndex() {
         ChargesForNormalUrgent: number;
         ChargesForSameDayUrgent: number;
         NTNNumber: string;
+        Hangers: number;
         _method?: 'put'; // For method spoofing on updates
     }>({
         ...DEFAULT_CONFIGURATION,
@@ -73,6 +76,7 @@ export default function ConfigurationsIndex() {
                 ChargesForNormalUrgent: configuration.ChargesForNormalUrgent,
                 ChargesForSameDayUrgent: configuration.ChargesForSameDayUrgent,
                 NTNNumber: configuration.NTNNumber,
+                Hangers: configuration.Hangers,
                 _method: 'put',
             });
         } else {
@@ -87,10 +91,11 @@ export default function ConfigurationsIndex() {
                 _method: 'put',
                 SalesTax: configuration.SalesTax,
                 NumberOfDaysForNormal: configuration.NumberOfDaysForNormal,
-                NumberOfDaysForUrgent: configuration.NumberOfDaysForUrgent,
                 ChargesForNormalUrgent: configuration.ChargesForNormalUrgent,
+                NumberOfDaysForUrgent: configuration.NumberOfDaysForUrgent,
                 ChargesForSameDayUrgent: configuration.ChargesForSameDayUrgent,
                 NTNNumber: configuration.NTNNumber,
+                Hangers: configuration.Hangers,
             });
         } else {
             // Populate with default data for creating a new one
@@ -170,6 +175,10 @@ export default function ConfigurationsIndex() {
                                 <div className="flex items-center space-x-4">
                                     <Label className="w-64 font-medium">NTN Number:</Label>
                                     <span>{configuration.NTNNumber}</span>
+                                </div>
+                                <div className="flex items-center space-x-4">
+                                    <Label className="w-64 font-medium">Hangers:</Label>
+                                    <span>{configuration.Hangers}</span>
                                 </div>
                             </div>
                         ) : (
@@ -253,6 +262,17 @@ export default function ConfigurationsIndex() {
                                         className={errors.NTNNumber ? 'border-red-500' : ''}
                                     />
                                     {errors.NTNNumber && <p className="text-sm text-red-500">{errors.NTNNumber}</p>}
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor="Hangers">Hangers</Label>
+                                    <Input
+                                        id="Hangers"
+                                        type="number"
+                                        value={data.Hangers}
+                                        onChange={(e) => setData('Hangers', parseInt(e.target.value, 10))}
+                                        className={errors.Hangers ? 'border-red-500' : ''}
+                                    />
+                                    {errors.Hangers && <p className="text-sm text-red-500">{errors.Hangers}</p>}
                                 </div>
                             </div>
                             <div className="flex justify-end space-x-2 pt-4">

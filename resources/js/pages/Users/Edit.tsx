@@ -1,31 +1,41 @@
 import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppLayout from '@/layouts/app-layout';
+
+// Import the base PageProps type from Inertia
+import type { PageProps } from '@inertiajs/core';
 
 interface User {
     id: number;
     name: string;
     email: string;
+    branch_code: string;
 }
 
-interface Props {
+// Extend the base PageProps type to include your custom props
+interface EditUserPageProps extends PageProps {
     user: User;
+    branches: Record<string, string>;
 }
 
-const UsersEdit: React.FC<Props> = ({ user }) => {
-    // The useForm hook simplifies form handling with Inertia.
+const UsersEdit: React.FC = () => {
+    // Cast the page props to your custom type
+    const { user, branches } = usePage<EditUserPageProps>().props;
+
     const { data, setData, patch, errors } = useForm({
         name: user.name,
         email: user.email,
+        branch_code: user.branch_code || '',
     });
 
-    // Handle form submission
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         patch(route('users.update', user.id));
     };
 
     return (
-        <>
+        <AppLayout>
             <Head title="Edit User" />
             <div className="container mx-auto p-4">
                 <h1 className="text-2xl font-bold mb-4">Edit User</h1>
@@ -58,6 +68,28 @@ const UsersEdit: React.FC<Props> = ({ user }) => {
                         {errors.email && <p className="text-red-500 text-xs italic mt-2">{errors.email}</p>}
                     </div>
 
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="branch_code">
+                            Branch
+                        </label>
+                        <Select
+                            value={data.branch_code}
+                            onValueChange={(value) => setData('branch_code', value)}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(branches).map(([code, name]) => (
+                                    <SelectItem key={code} value={code}>
+                                        {name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.branch_code && <p className="text-red-500 text-xs italic mt-2">{errors.branch_code}</p>}
+                    </div>
+                    
                     <div className="flex items-center justify-between">
                         <button
                             type="submit"
@@ -68,7 +100,7 @@ const UsersEdit: React.FC<Props> = ({ user }) => {
                     </div>
                 </form>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

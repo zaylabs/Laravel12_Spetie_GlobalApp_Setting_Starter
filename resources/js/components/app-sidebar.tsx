@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Combine, Receipt, Shirt, Settings, UserRound, Barcode, PackageSearch, Lock, ChartSpline, } from 'lucide-react';
+import { LayoutGrid, Combine, Receipt, Shirt, Settings, UserRound, Barcode, PackageSearch, Lock, ChartSpline, ShieldAlert, } from 'lucide-react';
 import AppLogo from './app-logo';
 
 
@@ -37,7 +37,7 @@ const mainNavItems: NavItem[] = [
         icon: ChartSpline,
     },   
 
-     {
+    {
         title: 'Settings',
         href: '/settingapp',
         icon: Settings,
@@ -46,6 +46,16 @@ const mainNavItems: NavItem[] = [
         title: 'Branches',
         href: '/branches',
         icon: ChartSpline,
+    },
+ {
+        title: 'Configurations',
+        href: '/configurations',
+        icon: ChartSpline,
+    },
+    {
+        title: 'Problems',
+        href: '/problems',
+        icon: ShieldAlert,
     },
     {
         title: 'Roles',
@@ -63,7 +73,7 @@ const footerNavItems: NavItem[] = [
     
 {
         title: 'Point of Sale',
-        href: '/pos',
+        href: route('bookings.create'),
         icon: Receipt,
     },
 

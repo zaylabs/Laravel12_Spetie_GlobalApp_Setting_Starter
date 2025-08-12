@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Branch; // Import the Branch model
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
@@ -18,14 +19,15 @@ class UserController extends Controller
      */
     public function index(): Response
     {
-        // Fetch all users and eager-load their roles to make the data
-        // available for the frontend without N+1 query issues.
-        $users = User::with('roles')->get()->map(function ($user) {
+        // Eager-load roles and branch for all users.
+        $users = User::with(['roles', 'branch'])->get()->map(function ($user) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'roles' => $user->getRoleNames(), // Get the names of roles as a collection
+                'roles' => $user->getRoleNames(),
+                'branch_code' => $user->branch_code, // Add branch_code
+                'branch_name' => $user->branch ? $user->branch->BranchName : 'N/A', // Display branch name if available
             ];
         });
 
@@ -37,10 +39,16 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
-        // Assuming your 'user.create' route leads to a form.
-        return redirect()->route('user.create')->with('success', 'User creation form displayed successfully.');
+        // Get all available branches for the dropdown
+        $branches = Branch::all()->pluck('BranchCode', 'BranchCode');
+        $roles = Role::pluck('name');
+        
+        return Inertia::render('Users/Create', [
+            'branches' => $branches,
+            'roles' => $roles
+        ]);
     }
 
     /**
@@ -48,8 +56,24 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        return redirect()->route('user.store')->with('success', 'User created successfully.');
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => ['required', 'string', Rule::in(Role::all()->pluck('name'))],
+            'branch_code' => ['required', 'string', Rule::in(Branch::all()->pluck('BranchCode'))],
+        ]);
+    
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+            'branch_code' => $validated['branch_code'],
+        ]);
+    
+        $user->assignRole($validated['role']);
+    
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
     /**
@@ -68,16 +92,19 @@ class UserController extends Controller
         // Eager-load roles for the user and pass all available roles
         // to the frontend for the role selection dropdown/multiselect.
         $user->load('roles');
-        $allRoles = Role::pluck('name'); // Get all role names from the database
+        $allRoles = Role::pluck('name');
+        $branches = Branch::all()->pluck('BranchCode', 'BranchCode');
 
         return Inertia::render('Users/Edit', [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'roles' => $user->getRoleNames(), // Pass the user's current roles
+                'roles' => $user->getRoleNames(),
+                'branch_code' => $user->branch_code, // Pass the user's current branch code
             ],
-            'allRoles' => $allRoles, // Pass all available roles
+            'allRoles' => $allRoles,
+            'branches' => $branches, // Pass all available branches
         ]);
     }
 
@@ -89,8 +116,9 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            // You might need to add validation for roles here if you're updating them
-            // For example: 'roles' => ['array'], 'roles.*' => [Rule::in(Role::all()->pluck('name'))]
+            'branch_code' => ['required', 'string', Rule::in(Branch::all()->pluck('BranchCode'))],
+            // Add validation for roles here if you're updating them
+            // 'roles' => ['array'], 'roles.*' => [Rule::in(Role::all()->pluck('name'))]
         ]);
 
         $user->update($validated);

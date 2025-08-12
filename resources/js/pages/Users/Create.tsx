@@ -9,20 +9,22 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type BreadcrumbItem } from '@/types';
 
-// Define a type for the data submitted in the form, now including 'role'
+// Define a type for the data submitted in the form, now including 'role' and 'branch_code'
 type RegisterForm = {
     name: string;
     email: string;
     password: string;
     password_confirmation: string;
     role: string;
+    branch_code: string; // Add new field
 };
 
-// Define a type for the page props to get the roles from the backend
+// Define a type for the page props to get the roles and branches from the backend
 import type { PageProps } from '@inertiajs/core';
 
 interface CreateUserPageProps extends PageProps {
     roles: string[];
+    branches: Record<string, string>; // Branches will be a key-value object
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -33,22 +35,24 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Register() {
-    // Get the roles from the Inertia page props
+    // Get the roles and branches from the Inertia page props
     const { props } = usePage<CreateUserPageProps>();
     const availableRoles = props.roles;
+    const availableBranches = props.branches;
 
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
-        role: '', // Initialize the new 'role' field
+        role: '',
+        branch_code: '', // Initialize the new 'branch_code' field
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('user.store'), {
-            onFinish: () => reset('name', 'email', 'password', 'password_confirmation', 'role'),
+        post(route('users.store'), {
+            onFinish: () => reset('name', 'email', 'password', 'password_confirmation', 'role', 'branch_code'),
         });
     };
 
@@ -121,6 +125,28 @@ export default function Register() {
                                 placeholder="Confirm password"
                             />
                             <InputError message={errors.password_confirmation} />
+                        </div>
+                        
+                        {/* New dropdown for selecting a branch */}
+                        <div className="grid gap-2">
+                            <Label htmlFor="branch_code">Branch</Label>
+                            <Select
+                                value={data.branch_code}
+                                onValueChange={(value) => setData('branch_code', value)}
+                                disabled={processing}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select a branch" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(availableBranches).map(([code, name]) => (
+                                        <SelectItem key={code} value={code}>
+                                            {name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <InputError message={errors.branch_code} className="mt-2" />
                         </div>
 
                         {/* New dropdown for selecting a role */}

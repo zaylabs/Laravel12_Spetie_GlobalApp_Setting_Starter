@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 // Define a minimal PageProps type if not available in '@/types'
 type PageProps = Record<string, unknown>;
 
-// Extend the User interface to include roles
+// Extend the User interface to include roles and branch code
 interface User {
     id: number;
     name: string;
     email: string;
     roles: string[];
+    branch_code: string; // Add this line
+    branch_name: string; // Add this line
 }
 
 // Extend PageProps to include the authenticated user with roles/permissions
@@ -87,6 +89,9 @@ const Index: React.FC<AuthenticatedPageProps> = ({ users }) => {
                                                 Email
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Branch
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Roles
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -105,6 +110,9 @@ const Index: React.FC<AuthenticatedPageProps> = ({ users }) => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {user.email}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <span className="font-semibold">{user.branch_name} ({user.branch_code})</span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     <span className="font-semibold">{user.roles.join(', ')}</span>
