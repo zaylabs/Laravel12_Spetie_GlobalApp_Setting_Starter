@@ -253,7 +253,7 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                             className="h-40 flex-col justify-center items-center p-4 text-center rounded-3xl transition-all duration-200 transform hover:scale-105 active:scale-95 border-2 border-gray-200 dark:border-gray-600 hover:border-green-500 hover:bg-green-50 dark:hover:bg-gray-700"
                                         >
                                             <span className="font-semibold text-2xl text-gray-800 dark:text-gray-100">{item.name}</span>
-                                            <span className="text-xl text-gray-600 dark:text-gray-400 mt-2">${item.price.toFixed(2)}</span>
+                                            <span className="text-xl text-gray-600 dark:text-gray-400 mt-2">Rs.{item.price.toFixed(2)}</span>
                                             <span className="text-sm text-gray-400 dark:text-gray-500 mt-1">({item.no_of_units} units)</span>
                                         </Button>
                                     ))}
@@ -284,7 +284,7 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                                 <div className="flex-1 text-center sm:text-left">
                                                     <span className="font-medium text-xl text-gray-900 dark:text-gray-100">{item.name}</span>
                                                     <span className="text-lg text-gray-600 dark:text-gray-400 block sm:inline sm:ml-2">
-                                                        (${item.price.toFixed(2)}/pc)
+                                                        (Rs.{item.price.toFixed(2)}/pc)
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-4 mt-4 sm:mt-0">
@@ -428,14 +428,14 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                             </div>
                                             <div className="flex justify-between items-center text-lg">
                                                 <span>Subtotal:</span>
-                                                <span className="font-medium">${subTotal.toFixed(2)}</span>
+                                                <span className="font-medium">Rs.{subTotal.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-lg">
                                                 <span>Sales Tax ({configurations.SalesTax}%):</span>
-                                                <span className="font-medium">${salesTax.toFixed(2)}</span>
+                                                <span className="font-medium">Rs.{salesTax.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between items-center text-lg">
-                                                <span>Hanger Charge (${configurations.Hangers}/unit):</span>
+                                                <span>Hanger Charge (Rs.{configurations.Hangers}/unit):</span>
                                                 <Input
                                                     type="number"
                                                     value={data.hanger_units}
@@ -446,7 +446,7 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                             </div>
                                             <div className="flex justify-between items-center text-2xl font-bold text-gray-900 dark:text-gray-100 pt-4 border-t border-gray-200 dark:border-gray-700">
                                                 <span>Total:</span>
-                                                <span>${typeof total === 'number' && !isNaN(total) ? total.toFixed(2) : '0.00'}</span>
+                                                <span>Rs.{typeof total === 'number' && !isNaN(total) ? total.toFixed(2) : '0.00'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -457,7 +457,7 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
                                             disabled={processing}
                                             className="rounded-2xl px-8 py-4 text-2xl font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg transition-all duration-200"
                                         >
-                                            {processing ? "Processing..." : `Create Booking ($${typeof total === 'number' && !isNaN(total) ? total.toFixed(2) : '0.00'})`}
+                                            {processing ? "Processing..." : `Create Booking (Rs.${typeof total === 'number' && !isNaN(total) ? total.toFixed(2) : '0.00'})`}
                                         </Button>
                                     </div>
                                 </form>

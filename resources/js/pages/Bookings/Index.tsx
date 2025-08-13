@@ -114,7 +114,7 @@ export default function BookingsIndex({ bookings }: Props) {
                                     <TableCell className="capitalize">{booking.delivery_type.replace('_', ' ')}</TableCell>
                                     <TableCell>{format(new Date(booking.booking_date), 'MMM d, yyyy h:mm a')}</TableCell>
                                     <TableCell>{booking.delivery_date ? format(new Date(booking.delivery_date), 'MMM d, yyyy') : 'N/A'}</TableCell>
-                                    <TableCell>${booking.total_amount}</TableCell>
+                                    <TableCell>Rs.{booking.total_amount}</TableCell>
                                     <TableCell className="capitalize">{booking.status}</TableCell>
                                     <TableCell className="text-center">
                                         <Button onClick={() => handleViewDetails(booking)} variant="link">
@@ -161,12 +161,12 @@ export default function BookingsIndex({ bookings }: Props) {
                                     </ul>
                                 </div>
                                 <div className="mt-4 border-t pt-4">
-                                    <p><strong>Amount (before tax):</strong> ${selectedBooking.amount_total}</p>
+                                    <p><strong>Amount (before tax):</strong> Rs.{selectedBooking.amount_total}</p>
                                     <p><strong>Sales Tax (%):</strong> {selectedBooking.sales_tax_percentage}%</p>
-                                    <p><strong>Sales Tax Amount:</strong> ${selectedBooking.sales_tax_amount}</p>
+                                    <p><strong>Sales Tax Amount:</strong> Rs.{selectedBooking.sales_tax_amount}</p>
                                     <p><strong>Hanger Units:</strong> {selectedBooking.hanger_units}</p>
-                                    <p><strong>Hanger Amount:</strong> ${selectedBooking.hanger_amount}</p>
-                                    <h4 className="text-lg font-bold mt-2">Total: ${selectedBooking.total_amount}</h4>
+                                    <p><strong>Hanger Amount:</strong> Rs.{selectedBooking.hanger_amount}</p>
+                                    <h4 className="text-lg font-bold mt-2">Total: Rs.{selectedBooking.total_amount}</h4>
                                 </div>
                             </div>
                         )}
