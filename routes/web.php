@@ -15,7 +15,7 @@ use App\Http\Controllers\ProblemController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CustomerController;
-
+use App\Http\Controllers\LocationController;
 
 
 Route::get('/', function () {
@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('bookings', BookingController::class);
 
+    Route::resource('locations', LocationController::class);
   
 
     

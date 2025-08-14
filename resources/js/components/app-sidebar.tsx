@@ -88,6 +88,12 @@ const footerNavItems: NavItem[] = [
        icon: Combine,
    },
 
+   {
+       title: 'Location',
+       href: '/locations',
+       icon: Combine,
+   },
+
       
 ];
 

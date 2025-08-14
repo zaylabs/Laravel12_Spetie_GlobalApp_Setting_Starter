@@ -172,37 +172,44 @@ export default function Pos({ items, configurations, isSameDayUrgentEnabled, boo
     };
 
     // Handle form submission
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (data.selectedItems.length === 0) {
-            toast.error("Please select at least one item.");
-            return;
-        }
+const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (data.selectedItems.length === 0) {
+        toast.error("Please select at least one item.");
+        return;
+    }
 
-        const postData = {
-            ...data,
-            amount_total: calculateSubTotal(),
-            sales_tax_amount: calculateSalesTax(),
-            number_of_units: calculateTotalBookingUnits(),
-            hanger_amount: calculateHangerAmount(),
-            total_amount: calculateTotal(),
-        };
+    // Calculate all the final values
+    const finalSubTotal = calculateSubTotal();
+    const finalSalesTaxAmount = calculateSalesTax();
+    const finalHangerAmount = calculateHangerAmount();
+    const finalTotalAmount = finalSubTotal + finalSalesTaxAmount + finalHangerAmount;
 
-        post(route('bookings.store'), postData, {
-            onSuccess: () => {
-                toast.success('Booking created successfully.');
-                reset();
-                setData('issues', []);
-            },
-            onError: (formErrors) => {
-                toast.error('Failed to create booking.', {
-                    description: Object.values(formErrors).join('\n'),
-                });
-            },
-        });
-    };
+    // Create a new object with all the form data, including the calculated values.
+    const submissionData = {
+        ...data, // Keep the existing form data
+        amount_total: finalSubTotal,
+        sales_tax_amount: finalSalesTaxAmount,
+        hanger_amount: finalHangerAmount,
+        total_amount: finalTotalAmount,
+        number_of_units: calculateTotalBookingUnits(),
+    };
 
-    // Filter items based on the search query
+    // Now, call the post method with the new, updated form data object.
+    post(route('bookings.store'), {
+        data: submissionData, // Pass the new data object here
+        onSuccess: () => {
+            toast.success('Booking created successfully.');
+            reset();
+            setData('issues', []);
+        },
+        onError: (formErrors) => {
+            toast.error('Failed to create booking.', {
+                description: Object.values(formErrors).join('\n'),
+            });
+        },
+    });
+};    // Filter items based on the search query
     const filteredItems = items.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );

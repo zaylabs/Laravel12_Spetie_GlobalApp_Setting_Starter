@@ -14,6 +14,10 @@ export default defineConfig({
         react(),
         tailwindcss(),
     ],
+    // Expose the environment variable to the frontend
+    define: {
+        'process.env.VITE_GOOGLE_MAPS_API_KEY': JSON.stringify(process.env.VITE_GOOGLE_MAPS_API_KEY),
+    },
     esbuild: {
         jsx: 'automatic',
     },
